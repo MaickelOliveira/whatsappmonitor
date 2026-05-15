@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
     status: 200,
     headers: {
       "Content-Type": "application/json",
-      "Set-Cookie": `wa_session=${token}; HttpOnly; Path=/; SameSite=Strict; Max-Age=86400`,
+      "Set-Cookie": `wa_session=${token}; HttpOnly; Path=/; SameSite=Lax; Secure; Max-Age=86400`,
     },
   });
 }
