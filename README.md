@@ -1,36 +1,99 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# WhatsApp Monitor
 
-## Getting Started
+Plataforma para visualizar e responder conversas do WhatsApp, mostrando tanto as mensagens do cliente quanto as enviadas pela IA do n8n.
 
-First, run the development server:
+## Configuração
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+### 1. Variáveis de ambiente
+
+Edite o arquivo `.env.local` com suas credenciais:
+
+```env
+WA_PHONE_NUMBER_ID=   # ID do número no Meta Business Manager
+WA_ACCESS_TOKEN=      # Token permanente da WhatsApp Cloud API
+API_SECRET=           # Qualquer string secreta (ex: gerada com openssl rand -hex 32)
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Para obter as credenciais do WhatsApp:
+- Acesse Meta for Developers
+- Vá em **WhatsApp > Configuração da API**
+- Copie o **ID do número de telefone** e gere um **token permanente**
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 2. Instalar, banco e rodar
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+# Instalar dependências e inicializar banco de dados
+npm run setup
 
-## Learn More
+# Desenvolvimento
+npm run dev
 
-To learn more about Next.js, take a look at the following resources:
+# Produção (depois do setup)
+npm start
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### 3. Configurar o n8n
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Adicione dois nós **HTTP Request** no seu fluxo do n8n:
 
-## Deploy on Vercel
+#### Nó 1 — Logo após receber o webhook do WhatsApp (mensagem do cliente)
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- **Método**: POST
+- **URL**: `http://localhost:3000/api/log` (ou o IP/domínio do servidor)
+- **Header**: `x-api-secret: SUA_API_SECRET`
+- **Body (JSON)**:
+```json
+{
+  "phoneNumber": "={{ $json.entry[0].changes[0].value.contacts[0].wa_id }}",
+  "contactName": "={{ $json.entry[0].changes[0].value.contacts[0].profile.name }}",
+  "content": "={{ $json.entry[0].changes[0].value.messages[0].text.body }}",
+  "direction": "incoming",
+  "senderType": "client",
+  "timestamp": "={{ $now }}"
+}
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+#### Nó 2 — Logo após o nó que envia a mensagem da IA pelo WhatsApp
+
+- **Método**: POST
+- **URL**: `http://localhost:3000/api/log`
+- **Header**: `x-api-secret: SUA_API_SECRET`
+- **Body (JSON)** (adapte os nomes dos nós anteriores):
+```json
+{
+  "phoneNumber": "={{ $('NomeDoNoDeEnvio').item.json.to }}",
+  "content": "={{ $('NomeDoNoDeEnvio').item.json.text.body }}",
+  "direction": "outgoing",
+  "senderType": "ai",
+  "waMessageId": "={{ $json.messages[0].id }}",
+  "timestamp": "={{ $now }}"
+}
+```
+
+### 4. Deploy no VPS (com PM2)
+
+```bash
+npm run setup
+pm2 start npm --name whatsapp-platform -- start
+pm2 save
+```
+
+Configure o Nginx para redirecionar o domínio para `localhost:3000`.
+
+## Endpoints da API
+
+| Método | Rota | Descrição |
+|--------|------|-----------|
+| `POST` | `/api/log` | Recebe logs do n8n (requer header `x-api-secret`) |
+| `GET`  | `/api/conversations` | Lista todas as conversas |
+| `GET`  | `/api/conversations/:phone/messages` | Mensagens de uma conversa |
+| `GET`  | `/api/stream?phone=xxx` | SSE — atualizações em tempo real |
+| `POST` | `/api/send` | Envia mensagem como operador |
+
+## Legenda de cores no chat
+
+| Cor | Quem enviou |
+|-----|------------|
+| Branco (esquerda) | Cliente |
+| Verde (direita) | IA |
+| Azul (direita) | Operador humano |

@@ -1,0 +1,29 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Conversation {
+  id            String    @id @default(cuid())
+  phoneNumber   String    @unique
+  contactName   String?
+  lastMessageAt DateTime
+  createdAt     DateTime  @default(now())
+  messages      Message[]
+}
+
+model Message {
+  id             String       @id @default(cuid())
+  conversationId String
+  content        String
+  direction      String
+  senderType     String
+  waMessageId    String?
+  timestamp      DateTime
+  createdAt      DateTime     @default(now())
+  conversation   Conversation @relation(fields: [conversationId], references: [id])
+}
