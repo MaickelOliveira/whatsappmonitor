@@ -50,6 +50,7 @@ export default function Sidebar({ activePhone }: { activePhone?: string }) {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [readTimes, setReadTimes] = useState<Record<string, string>>({});
   const esRef = useRef<EventSource | null>(null);
   const router = useRouter();
 
@@ -58,6 +59,20 @@ export default function Sidebar({ activePhone }: { activePhone?: string }) {
     if (res.ok) setConversations(await res.json());
     setLoading(false);
   };
+
+  useEffect(() => {
+    const stored = localStorage.getItem("wa_read_times");
+    if (stored) setReadTimes(JSON.parse(stored));
+  }, []);
+
+  useEffect(() => {
+    if (!activePhone) return;
+    setReadTimes((prev) => {
+      const next = { ...prev, [activePhone]: new Date().toISOString() };
+      localStorage.setItem("wa_read_times", JSON.stringify(next));
+      return next;
+    });
+  }, [activePhone]);
 
   useEffect(() => {
     fetchConversations();
@@ -142,6 +157,11 @@ export default function Sidebar({ activePhone }: { activePhone?: string }) {
           filtered.map((conv) => {
             const last = conv.messages[0];
             const isActive = conv.phoneNumber === activePhone;
+            const lastReadAt = readTimes[conv.phoneNumber];
+            const isUnread =
+              !isActive &&
+              last?.direction === "incoming" &&
+              (!lastReadAt || new Date(conv.lastMessageAt) > new Date(lastReadAt));
             return (
               <Link
                 key={conv.id}
@@ -153,24 +173,31 @@ export default function Sidebar({ activePhone }: { activePhone?: string }) {
                 <Avatar name={conv.contactName ?? conv.phoneNumber} />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between">
-                    <span className="font-medium text-[#111b21] text-sm truncate">
+                    <span className={`text-sm truncate ${isUnread ? "font-semibold text-[#111b21]" : "font-medium text-[#111b21]"}`}>
                       {conv.contactName ?? conv.phoneNumber}
                     </span>
-                    <span className="text-xs text-[#8696a0] ml-2 flex-shrink-0">
+                    <span className={`text-xs ml-2 flex-shrink-0 ${isUnread ? "text-[#00a884] font-medium" : "text-[#8696a0]"}`}>
                       {timeAgo(conv.lastMessageAt)}
                     </span>
                   </div>
-                  {last && (
-                    <p className="text-xs text-[#8696a0] truncate mt-0.5 flex items-center gap-1">
-                      {last.senderType === "ai" && (
-                        <span className="text-[#00a884] font-medium">[IA]</span>
-                      )}
-                      {last.senderType === "human" && (
-                        <span className="text-blue-500 font-medium">[Você]</span>
-                      )}
-                      {last.content}
-                    </p>
-                  )}
+                  <div className="flex items-center justify-between mt-0.5">
+                    {last && (
+                      <p className="text-xs text-[#8696a0] truncate flex items-center gap-1">
+                        {last.senderType === "ai" && (
+                          <span className="text-[#00a884] font-medium">[IA]</span>
+                        )}
+                        {last.senderType === "human" && (
+                          <span className="text-blue-500 font-medium">[Você]</span>
+                        )}
+                        {last.content}
+                      </p>
+                    )}
+                    {isUnread && (
+                      <div className="w-5 h-5 bg-[#00a884] rounded-full flex-shrink-0 ml-2 flex items-center justify-center">
+                        <span className="text-white text-[10px] font-bold">●</span>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </Link>
             );
