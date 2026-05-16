@@ -100,7 +100,7 @@ export default function Sidebar({ activePhone }: { activePhone?: string }) {
   });
 
   return (
-    <aside className="flex-1 md:flex-none md:w-[360px] flex-shrink-0 flex flex-col border-r border-[#e9edef] bg-white h-screen">
+    <aside className="flex-1 md:flex-none md:w-[360px] flex-shrink-0 flex flex-col border-r border-[#e9edef] bg-white h-screen overflow-x-hidden">
       {/* Header */}
       <div className="bg-[#f0f2f5] px-4 py-3 flex items-center justify-between flex-shrink-0">
         <div className="flex items-center gap-3">
@@ -123,7 +123,7 @@ export default function Sidebar({ activePhone }: { activePhone?: string }) {
       </div>
 
       {/* Search */}
-      <div className="px-3 py-2 bg-white flex-shrink-0">
+      <div className="px-3 py-2 bg-white flex-shrink-0 overflow-hidden">
         <div className="flex items-center gap-2 bg-[#f0f2f5] rounded-lg px-3 py-2">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-4 h-4 text-[#54656f] flex-shrink-0">
             <circle cx="11" cy="11" r="8" /><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35" />
@@ -138,7 +138,7 @@ export default function Sidebar({ activePhone }: { activePhone?: string }) {
       </div>
 
       {/* Conversation list */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto overflow-x-hidden">
         {loading ? (
           <div className="flex items-center justify-center py-12 text-[#8696a0] text-sm">
             Carregando...
