@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef, use } from "react";
+import { useRouter } from "next/navigation";
 import Sidebar, { Avatar } from "@/components/Sidebar";
 
 type Message = {
@@ -132,11 +133,14 @@ export default function ChatPage({ params }: { params: Promise<{ phone: string }
     return result;
   };
 
+  const router = useRouter();
   const displayName = conversation?.contactName ?? phone;
 
   return (
     <div className="flex h-screen overflow-hidden">
-      <Sidebar activePhone={phone} />
+      <div className="hidden md:flex">
+        <Sidebar activePhone={phone} />
+      </div>
 
       <div className="flex-1 flex flex-col min-w-0">
         {/* Chat header */}
@@ -145,6 +149,14 @@ export default function ChatPage({ params }: { params: Promise<{ phone: string }
             <div className="h-5 w-32 bg-gray-200 rounded animate-pulse" />
           ) : (
             <>
+              <button
+                onClick={() => router.push("/")}
+                className="md:hidden p-1 -ml-1 rounded-full hover:bg-[#e9edef] transition-colors text-[#54656f]"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-5 h-5">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
               <Avatar name={displayName} />
               <div className="flex-1 min-w-0">
                 <p className="font-semibold text-[#111b21] text-sm leading-tight truncate">{displayName}</p>
