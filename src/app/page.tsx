@@ -4,7 +4,7 @@ export default function Home() {
   return (
     <div className="flex h-screen bg-[#f0f2f5] overflow-hidden">
       <Sidebar />
-      <main className="flex-1 flex flex-col items-center justify-center bg-[#f0f2f5]">
+      <main className="hidden lg:flex flex-1 flex-col items-center justify-center bg-[#f0f2f5]">
         <div className="text-center">
           <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm">
             <svg viewBox="0 0 24 24" fill="#00a884" className="w-12 h-12">
