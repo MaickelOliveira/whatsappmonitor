@@ -171,29 +171,29 @@ export default function Sidebar({ activePhone }: { activePhone?: string }) {
                 }`}
               >
                 <Avatar name={conv.contactName ?? conv.phoneNumber} />
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between">
-                    <span className={`text-sm truncate ${isUnread ? "font-semibold text-[#111b21]" : "font-medium text-[#111b21]"}`}>
+                <div className="flex-1 overflow-hidden">
+                  <div className="flex items-center gap-2">
+                    <span className={`text-sm truncate flex-1 ${isUnread ? "font-semibold text-[#111b21]" : "font-medium text-[#111b21]"}`}>
                       {conv.contactName ?? conv.phoneNumber}
                     </span>
-                    <span className={`text-xs ml-2 flex-shrink-0 ${isUnread ? "text-[#00a884] font-medium" : "text-[#8696a0]"}`}>
+                    <span className={`text-xs flex-shrink-0 ${isUnread ? "text-[#00a884] font-medium" : "text-[#8696a0]"}`}>
                       {timeAgo(conv.lastMessageAt)}
                     </span>
                   </div>
-                  <div className="flex items-center justify-between mt-0.5">
+                  <div className="flex items-center gap-2 mt-0.5">
                     {last && (
-                      <p className="text-xs text-[#8696a0] truncate flex items-center gap-1">
+                      <p className="text-xs text-[#8696a0] truncate flex-1 flex items-center gap-1">
                         {last.senderType === "ai" && (
-                          <span className="text-[#00a884] font-medium">[IA]</span>
+                          <span className="text-[#00a884] font-medium flex-shrink-0">[IA]</span>
                         )}
                         {last.senderType === "human" && (
-                          <span className="text-blue-500 font-medium">[Você]</span>
+                          <span className="text-blue-500 font-medium flex-shrink-0">[Você]</span>
                         )}
-                        {last.content}
+                        <span className="truncate">{last.content}</span>
                       </p>
                     )}
                     {isUnread && (
-                      <div className="w-5 h-5 bg-[#00a884] rounded-full flex-shrink-0 ml-2 flex items-center justify-center">
+                      <div className="w-5 h-5 bg-[#00a884] rounded-full flex-shrink-0 flex items-center justify-center">
                         <span className="text-white text-[10px] font-bold">●</span>
                       </div>
                     )}
