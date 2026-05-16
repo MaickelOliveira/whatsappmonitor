@@ -100,7 +100,7 @@ export default function Sidebar({ activePhone }: { activePhone?: string }) {
   });
 
   return (
-    <aside className="flex-1 lg:flex-none lg:w-[360px] lg:flex-shrink-0 flex flex-col border-r border-[#e9edef] bg-white h-screen overflow-x-hidden">
+    <aside className="w-full flex flex-col border-r border-[#e9edef] bg-white h-screen overflow-x-hidden">
       {/* Header */}
       <div className="bg-[#f0f2f5] px-4 py-3 flex items-center justify-between flex-shrink-0">
         <div className="flex items-center gap-3">
