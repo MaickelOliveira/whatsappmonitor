@@ -51,18 +51,34 @@ export default function Sidebar({ activePhone }: { activePhone?: string }) {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [readTimes, setReadTimes] = useState<Record<string, string>>({});
+  const [lastIncomingAt, setLastIncomingAt] = useState<Record<string, string>>({});
   const esRef = useRef<EventSource | null>(null);
   const router = useRouter();
 
   const fetchConversations = async () => {
     const res = await fetch("/api/conversations");
-    if (res.ok) setConversations(await res.json());
+    if (!res.ok) { setLoading(false); return; }
+    const convs: Conversation[] = await res.json();
+    setConversations(convs);
+    setLastIncomingAt((prev) => {
+      const next = { ...prev };
+      for (const conv of convs) {
+        const last = conv.messages[0];
+        if (last?.direction === "incoming") {
+          next[conv.phoneNumber] = conv.lastMessageAt;
+        }
+      }
+      localStorage.setItem("wa_last_incoming", JSON.stringify(next));
+      return next;
+    });
     setLoading(false);
   };
 
   useEffect(() => {
     const stored = localStorage.getItem("wa_read_times");
     if (stored) setReadTimes(JSON.parse(stored));
+    const storedIncoming = localStorage.getItem("wa_last_incoming");
+    if (storedIncoming) setLastIncomingAt(JSON.parse(storedIncoming));
   }, []);
 
   useEffect(() => {
@@ -158,10 +174,11 @@ export default function Sidebar({ activePhone }: { activePhone?: string }) {
             const last = conv.messages[0];
             const isActive = conv.phoneNumber === activePhone;
             const lastReadAt = readTimes[conv.phoneNumber];
+            const lastIncoming = lastIncomingAt[conv.phoneNumber];
             const isUnread =
               !isActive &&
-              last?.direction === "incoming" &&
-              (!lastReadAt || new Date(conv.lastMessageAt) > new Date(lastReadAt));
+              !!lastIncoming &&
+              (!lastReadAt || new Date(lastIncoming) > new Date(lastReadAt));
             return (
               <Link
                 key={conv.id}
